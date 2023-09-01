@@ -114,3 +114,40 @@ matched (2): 548 548
 matched (3): -1 -1
 matched (4): -1 -1
 ```
+
+`0008-ucrt-arm64-win11-insns.patch`
+```
+--- a/win32/win32.c
++++ b/win32/win32.c
+@@ -2596,8 +2596,8 @@
+      * * https://bugs.ruby-lang.org/issues/11118
+      * * https://bugs.ruby-lang.org/issues/18605
+      */
+-    char *p = (char*)get_proc_address(UCRTBASE, "_isatty", NULL);
+-    char *pend = p;
++    unsigned char *p = (char*)get_proc_address(UCRTBASE, "_isatty", NULL);
++    unsigned char *pend = p;
+     /* _osfile(fh) & FDEV */
+ 
+ # ifdef _WIN64
+@@ -2622,15 +2622,15 @@
+             }
+         }
+     }
+-    fprintf(stderr, "unexpected " UCRTBASE "\n");
+-    _exit(1);
+ 
+     found:
+     p += sizeof(PIOINFO_MARK) - 1;
+ #ifdef _WIN64
+     rel = *(int32_t*)(p);
+     rip = p + sizeof(int32_t);
++    HANDLE h = GetModuleHandle("ucrtbase.dll");
+-    __pioinfo = (ioinfo**)(rip + rel);
++    __pioinfo = (ioinfo**)((char *)h + 0x1E1DA0);
+ #else
++    HANDLE h = GetModuleHandle("ucrtbase.dll");
+-    __pioinfo = *(ioinfo***)(p);
++    __pioinfo = (ioinfo**)((char *)h + 0x1E1DA0);
+ #endif
+```
