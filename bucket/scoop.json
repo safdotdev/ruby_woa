@@ -1,0 +1,19 @@
+{
+    "version": "0.0.1",
+    "description": "Ruby - Windows on Arm64",
+    "homepage": "https://github.com/safdotdev/ruby_woa",
+    "license": "MIT",
+    "architecture": {
+        "arm64": {
+            "url": [
+                "https://github.com/safdotdev/ruby_woa/releases/download/0.0.1/miniruby.exe"
+            ],
+            "hash": [
+                "4e591d2ce7a4df9246a2998965554563c7202a56a3a4ed35491b6a31a31ddd0c"
+            ],
+            "bin": [
+                "miniruby.exe"
+            ]
+        }
+    }
+}
