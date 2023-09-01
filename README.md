@@ -155,37 +155,33 @@ matched (4): -1 -1
 `0009-windows-arm64-3.2.2.patch`
 
 ```
---- a/win32/win32.c
-+++ b/win32/win32.c
-@@ -2596,8 +2596,8 @@
-      * * https://bugs.ruby-lang.org/issues/11118
-      * * https://bugs.ruby-lang.org/issues/18605
-      */
--    char *p = (char*)get_proc_address(UCRTBASE, "_isatty", NULL);
--    char *pend = p; 
-+    unsigned char *p = (char*)get_proc_address(UCRTBASE, "_isatty", NULL);
-+    unsigned char *pend = p;
-     /* _osfile(fh) & FDEV */
- 
- # ifdef _WIN64
-@@ -2622,15 +2622,15 @@
-             }
-         }
-     }
--    fprintf(stderr, "unexpected " UCRTBASE "\n");
--    _exit(1);
- 
-     found:
-     p += sizeof(PIOINFO_MARK) - 1;
- #ifdef _WIN64
-     rel = *(int32_t*)(p);
-     rip = p + sizeof(int32_t);
-+    HANDLE h = GetModuleHandle("ucrtbase.dll");
--    __pioinfo = (ioinfo**)(rip + rel);
-+    __pioinfo = (ioinfo**)((char *)h + 0x1D8DB0);
- #else
-+    HANDLE h = GetModuleHandle("ucrtbase.dll");
--    __pioinfo = *(ioinfo***)(p);
-+    __pioinfo = (ioinfo**)((char *)h + 0x1D8DB0);
- #endif
+--- a/configure.ac	2022-09-17 20:44:42.375546800 +0200
++++ b/configure.ac	2022-09-17 20:49:48.224691700 +0200
+@@ -2541,6 +2541,9 @@
+         [*86-mingw*], [
+             coroutine_type=win32
+         ],
++        [aarch64-mingw*], [
++            coroutine_type=arm64
++        ],
+         [arm*-linux*], [
+             coroutine_type=arm32
+         ],
+--- a/vm_dump.c
++++ b/vm_dump.c
+@@ -727,6 +727,14 @@
+                     frame.AddrFrame.Offset = context.Rbp;
+                     frame.AddrStack.Mode = AddrModeFlat;
+                     frame.AddrStack.Offset = context.Rsp;
++#elif defined(__aarch64__)
++		            mac = IMAGE_FILE_MACHINE_ARM64;
++		            frame.AddrPC.Mode = AddrModeFlat;
++		            frame.AddrPC.Offset = context.Pc;
++		            frame.AddrFrame.Mode = AddrModeFlat;
++		            frame.AddrFrame.Offset = context.Fp;
++		            frame.AddrStack.Mode = AddrModeFlat;
++		            frame.AddrStack.Offset = context.Sp;
+ #else	/* i386 */
+                     mac = IMAGE_FILE_MACHINE_I386;
+                     frame.AddrPC.Mode = AddrModeFlat;
 ```
